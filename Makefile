@@ -4,7 +4,7 @@ NVCC = nvcc
 CFLAGS = -std=gnu17 -I/usr/local/cuda/include
 NVCCFLAGS = -std=c++11 -I/usr/local/cuda/include
 LDFLAGS = -L/usr/local/cuda/lib64 -lcudart
-SRC_DIR = ./
+SRC_DIR = ./src
 OUTPUT_DIR = ./output
 
 # Find all .c and .cu files in src directory and subdirectories

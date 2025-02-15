@@ -13,7 +13,17 @@
 // matmul kernel
 __global__ void matmul_tensor_core(half *A, half *B, float *C, int N);
 
-half *init_matrix(int N, int reverse = 0) {
+half *init_matrix_half(int N, int reverse = 0) {
+    half *mat = (half *)malloc(N * N * sizeof(half));
+
+    for (int i = 0; i < N * N; i++) {
+        mat[i] = reverse == 0 ? __float2half(i % 1000) : __float2half(((N * N) - i) % 1000);
+    }
+
+    return mat;
+}
+
+float *init_matrix_float(int N, int reverse = 0) {
     half *mat = (half *)malloc(N * N * sizeof(half));
 
     for (int i = 0; i < N * N; i++) {
@@ -39,13 +49,13 @@ int main() {
     int N = 32;
     half *d_A, *d_B, *d_C;
 
-    half *A = init_matrix(N, 0);
-    half *B = init_matrix(N, 1);
-    half *C = init_matrix(N, 0);
+    half *A = init_matrix_half(N, 0);
+    half *B = init_matrix_half(N, 1);
+    float *C = init_matrix_float(N, 0);
 
     cudaMalloc((void **)&d_A, N * N * sizeof(half));
     cudaMalloc((void **)&d_B, N * N * sizeof(half));
-    cudaMalloc((void **)&d_C, N * N * sizeof(half));
+    cudaMalloc((void **)&d_C, N * N * sizeof(float));
 
     cudaMemcpy(d_A, A, sizeof(half) * N * N, cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, B, sizeof(half) * N * N, cudaMemcpyHostToDevice);
@@ -65,7 +75,7 @@ int main() {
     cudaEventElapsedTime(&elapsedTime, start, stop);
     printf("Time taken by kernel: %.3f ms\n", elapsedTime);
 
-    cudaMemcpy(C, d_C, sizeof(half) * N * N, cudaMemcpyDeviceToHost);
+    cudaMemcpy(C, d_C, sizeof(float) * N * N, cudaMemcpyDeviceToHost);
 
     matprint(C, N);
 
