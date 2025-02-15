@@ -2,7 +2,7 @@
 CC = clang
 NVCC = nvcc
 CFLAGS = -std=gnu17 -I/usr/local/cuda/include
-NVCCFLAGS = -std=c++11 -I/usr/local/cuda/include
+NVCCFLAGS = -std=c++11 -arch=sm_70 -I/usr/local/cuda/include
 LDFLAGS = -L/usr/local/cuda/lib64 -lcudart
 SRC_DIR = ./src
 OUTPUT_DIR = ./output
