@@ -41,8 +41,6 @@ void matprint(half *mat, int N) {
         
         printf("%.0f, ", __half2float(mat[i]));
     }
-
-    return mat;
 }
 
 int main() {
