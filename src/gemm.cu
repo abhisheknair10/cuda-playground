@@ -104,5 +104,5 @@ __global__ void matmul_tensor_core(half *A, half *B, float *C, int N) {
     wmma::mma_sync(accum_frag, a_frag, b_frag, accum_frag);
 
     // Store the result back to global memory
-    wmma::store_matrix_sync(C, accum_frag, N, wmma::mem_row_major);
+    wmma::store_matrix_sync(&C, accum_frag, N, wmma::mem_row_major);
 }
