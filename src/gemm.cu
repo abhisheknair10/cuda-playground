@@ -10,6 +10,8 @@
 #define WMMA_N 32
 #define WMMA_K 32
 
+using namespace nvcuda;
+
 // matmul kernel
 __global__ void matmul_tensor_core(half *A, half *B, float *C, int N);
 
@@ -87,20 +89,20 @@ int main() {
 
 __global__ void matmul_tensor_core(half *A, half *B, float *C, int N) {
     // Declare fragment containers for A, B, and C
-    nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, nvcuda::wmma::row_major> a_frag;
-    nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, nvcuda::wmma::col_major> b_frag;
-    nvcuda::wmma::fragment<nvcuda::wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> accum_frag;
+    wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::row_major> a_frag;
+    wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> b_frag;
+    wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> accum_frag;
 
     // Load matrix tiles into WMMA fragments
-    nvcuda::wmma::load_matrix_sync(a_frag, A, N);
-    nvcuda::wmma::load_matrix_sync(b_frag, B, N);
+    wmma::load_matrix_sync(a_frag, A, N);
+    wmma::load_matrix_sync(b_frag, B, N);
 
     // Initialize accumulator fragment
-    nvcuda::wmma::fill_fragment(accum_frag, 0.0f);
+    wmma::fill_fragment(accum_frag, 0.0f);
 
     // Perform matrix multiplication using Tensor Cores
-    nvcuda::wmma::mma_sync(accum_frag, a_frag, b_frag, accum_frag);
+    wmma::mma_sync(accum_frag, a_frag, b_frag, accum_frag);
 
     // Store the result back to global memory
-    nvcuda::wmma::store_matrix_sync(C, accum_frag, N, nvcuda::wmma::mem_row_major);
+    wmma::store_matrix_sync(C, accum_frag, N, wmma::mem_row_major);
 }
