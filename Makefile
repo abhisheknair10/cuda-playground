@@ -1,5 +1,5 @@
 # Variables
-CC = clang
+CC = clang++
 NVCC = nvcc
 CFLAGS = -std=gnu17 -I/usr/local/cuda/include
 NVCCFLAGS = -std=c++11 -arch=compute_75 -I/usr/local/cuda/include
