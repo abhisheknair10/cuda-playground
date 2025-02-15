@@ -13,10 +13,10 @@
 using namespace nvcuda;
 
 // matmul kernel
-__global__ void matmul_tensor_core(half *A, half *B, float *C, int N);
+__global__ void matmul_tensor_core(__half *A, __half *B, float *C, int N);
 
-half *init_matrix_half(int N, int reverse = 0) {
-    half *mat = (half *)malloc(N * N * sizeof(half));
+__half *init_matrix_half(int N, int reverse = 0) {
+    __half *mat = (__half *)malloc(N * N * sizeof(__half));
 
     for (int i = 0; i < N * N; i++) {
         mat[i] = reverse == 0 ? __float2half(i % 1000) : __float2half(((N * N) - i) % 1000);
@@ -47,19 +47,19 @@ void matprint(float *mat, int N) {
 
 int main() {
     int N = 32;
-    half *d_A, *d_B;
+    __half *d_A, *d_B;
     float *d_C;
 
-    half *A = init_matrix_half(N, 0);
-    half *B = init_matrix_half(N, 1);
+    __half *A = init_matrix_half(N, 0);
+    __half *B = init_matrix_half(N, 1);
     float *C = init_matrix_float(N, 0);
 
-    cudaMalloc((void **)&d_A, N * N * sizeof(half));
-    cudaMalloc((void **)&d_B, N * N * sizeof(half));
+    cudaMalloc((void **)&d_A, N * N * sizeof(__half));
+    cudaMalloc((void **)&d_B, N * N * sizeof(__half));
     cudaMalloc((void **)&d_C, N * N * sizeof(float));
 
-    cudaMemcpy(d_A, A, sizeof(half) * N * N, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, B, sizeof(half) * N * N, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_A, A, sizeof(__half) * N * N, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, B, sizeof(__half) * N * N, cudaMemcpyHostToDevice);
 
     dim3 blockDim(32, 32);
     dim3 gridDim(N / 32, N / 32);
@@ -87,10 +87,10 @@ int main() {
     return 0;
 }
 
-__global__ void matmul_tensor_core(half *A, half *B, float *C, int N) {
+__global__ void matmul_tensor_core(__half *A, __half *B, float *C, int N) {
     // Declare fragment containers for A, B, and C
-    wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::row_major> a_frag;
-    wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> b_frag;
+    wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, __half, wmma::row_major> a_frag;
+    wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, __half, wmma::col_major> b_frag;
     wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> accum_frag;
 
     // Load matrix tiles into WMMA fragments
