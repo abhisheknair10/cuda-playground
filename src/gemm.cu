@@ -24,7 +24,7 @@ half *init_matrix_half(int N, int reverse = 0) {
 }
 
 float *init_matrix_float(int N, int reverse = 0) {
-    half *mat = (half *)malloc(N * N * sizeof(half));
+    float *mat = (float *)malloc(N * N * sizeof(float));
 
     for (int i = 0; i < N * N; i++) {
         mat[i] = reverse == 0 ? i % 1000 : ((N * N) - i) % 1000;
