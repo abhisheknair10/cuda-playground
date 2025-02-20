@@ -13,7 +13,7 @@
         }                                                        \
     }
 
-#define TILE 32
+#define TILE 2
 
 void display_matrix(float *d_mat, float *h_mat, int row, int col) {
     cudaMemcpy(h_mat, d_mat, sizeof(float) * row * col, cudaMemcpyDeviceToHost);
@@ -53,18 +53,15 @@ __global__ void transpose_kernel(float *d_A, float *d_B, int m, int n) {
 
     int row = blockIdx.y * TILE + threadIdx.y;
     int col = blockIdx.x * TILE + threadIdx.x;
-
-    if (row < m and col < n) {
+    if (row < m && col < n) {
         shared_mem[threadIdx.y * TILE + threadIdx.x] = d_A[row * n + col];
     }
-
     __syncthreads();
 
-    row = blockIdx.x * TILE + threadIdx.x;
-    col = blockIdx.y * TILE + threadIdx.y;
-
-    if (row < n and col < m) {
-        d_B[row * m + col] = shared_mem[threadIdx.y * TILE + threadIdx.x];
+    col = blockIdx.y * TILE + threadIdx.x;
+    row = blockIdx.x * TILE + threadIdx.y;
+    if (row < n && col < m) {
+        d_B[row * m + col] = shared_mem[threadIdx.x * TILE + threadIdx.y];
     }
 }
 
@@ -76,8 +73,8 @@ void transpose(float *d_A, float *d_B, int m, int n) {
 }
 
 int main() {
-    int m = 10;
-    int n = 5;
+    int m = 4;
+    int n = 6;
 
     float *h_A = init_matrix(m, n);
     float *h_B = init_matrix(n, m);
@@ -87,7 +84,6 @@ int main() {
     cudaMalloc((void **)&d_B, sizeof(float) * n * m);
 
     cudaMemcpy(d_A, h_A, sizeof(float) * m * n, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, h_B, sizeof(float) * n * m, cudaMemcpyHostToDevice);
 
     display_matrix(d_A, h_A, m, n);
     transpose(d_A, d_B, m, n);

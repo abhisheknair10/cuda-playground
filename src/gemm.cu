@@ -13,7 +13,7 @@
         }                                                        \
     }
 
-#define TILE 32
+#define TILE 2
 
 void display_matrix(float *d_mat, float *h_mat, int row, int col) {
     cudaMemcpy(h_mat, d_mat, sizeof(float) * row * col, cudaMemcpyDeviceToHost);
@@ -68,25 +68,25 @@ __global__ void tiled_matmul_kernel(float *d_A, float *d_B, float *d_C, int m, i
     __shared__ float shmem_A[TILE * TILE];
     __shared__ float shmem_B[TILE * TILE];
 
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * TILE + threadIdx.y;
+    int col = blockIdx.x * TILE + threadIdx.x;
 
-    float _res = 0.0;
+    float _res = 0.0f;
     for (int t = 0; t < (k + TILE - 1) / TILE; t++) {
-        
-        if (row < m && (t * TILE + threadIdx.x) < k) {
-            int A_idx = row * k + t * TILE + threadIdx.x;
-            shmem_A[threadIdx.y * TILE + threadIdx.x] = d_A[A_idx];
+        if (row < m && t * TILE + threadIdx.x < k) {
+            int Aidx = row * k + t * TILE + threadIdx.x;
+            shmem_A[threadIdx.y * TILE + threadIdx.x] = d_A[Aidx];
         } else {
             shmem_A[threadIdx.y * TILE + threadIdx.x] = 0.0;
         }
 
         if (col < n && (t * TILE + threadIdx.y) < k) {
-            int B_idx = (t * TILE + threadIdx.y) * n + col;
-            shmem_B[threadIdx.y * TILE + threadIdx.x] = d_B[B_idx];
+            int Bidx = (t * TILE + threadIdx.y) * n + col;
+            shmem_B[threadIdx.y * TILE + threadIdx.x] = d_B[Bidx];
         } else {
             shmem_B[threadIdx.y * TILE + threadIdx.x] = 0.0;
         }
+
         __syncthreads();
 
         for (int i = 0; i < TILE; i++) {
@@ -119,7 +119,7 @@ void tiled_matmul(float *d_A, float *d_B, float *d_C, int m, int n, int k) {
 int main() {
     int m = 4;
     int n = 4;
-    int k = 4;
+    int k = 6;
 
     float *h_A = init_matrix(m, k);
     float *h_B = init_matrix(k, n);
