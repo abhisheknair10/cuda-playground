@@ -49,19 +49,19 @@ float *init_matrix(int row, int col) {
 }
 
 __global__ void transpose_kernel(float *d_A, float *d_B, int m, int n) {
-    __shared__ float shared_mem[TILE * TILE];
+    __shared__ float shared_mem[TILE * (TILE + 1)];
 
     int row = blockIdx.y * TILE + threadIdx.y;
     int col = blockIdx.x * TILE + threadIdx.x;
     if (row < m && col < n) {
-        shared_mem[threadIdx.y * TILE + threadIdx.x] = d_A[row * n + col];
+        shared_mem[threadIdx.y * (TILE + 1) + threadIdx.x] = d_A[row * n + col];
     }
     __syncthreads();
 
     col = blockIdx.y * TILE + threadIdx.x;
     row = blockIdx.x * TILE + threadIdx.y;
     if (row < n && col < m) {
-        d_B[row * m + col] = shared_mem[threadIdx.x * TILE + threadIdx.y];
+        d_B[row * m + col] = shared_mem[threadIdx.x * (TILE + 1) + threadIdx.y];
     }
 }
 

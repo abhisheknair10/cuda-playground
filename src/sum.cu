@@ -80,6 +80,7 @@ void sum_reduction(float *res, float *d_v, int v_len) {
     dim3 grid(1);
 
     sum_reduction_kernel<<<grid, block>>>(res, d_v, v_len);
+    cudaDeviceSynchronize();
 }
 
 int main() {
